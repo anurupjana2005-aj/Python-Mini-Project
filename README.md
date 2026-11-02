@@ -10,6 +10,7 @@ A desktop mini project that collects student details through a Tkinter GUI and g
 - Preview the generated PDF in the default PDF viewer before downloading it
 - Save-as dialog to choose where the PDF resume is downloaded
 - Clear Form button
+- Colorful blue-and-orange themed interface with highlighted form controls
 - Clean, professional resume layout generated with ReportLab
 
 ## Requirements

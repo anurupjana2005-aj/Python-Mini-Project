@@ -26,7 +26,19 @@ class StudentResumeApp:
         self.root.title("Student Resume Generator - Pro Edition")
         self.root.geometry("1250x800")  # Fixed geometry specifier
         self.root.minsize(1050, 700)
-        self.root.configure(bg="#eef3f8")
+        self.colors = {
+            "background": "#f4f7fb",
+            "navy": "#172554",
+            "blue": "#2563eb",
+            "blue_dark": "#1d4ed8",
+            "teal": "#0f766e",
+            "orange": "#f97316",
+            "text": "#243247",
+            "muted": "#64748b",
+            "input": "#fbfdff",
+            "border": "#cbd5e1",
+        }
+        self.root.configure(bg=self.colors["background"])
 
         self.fields = {}
         self.profile_image_path = None
@@ -40,28 +52,29 @@ class StudentResumeApp:
 
     def _build_ui(self):
         # Header
-        header = tk.Frame(self.root, bg="#183153", pady=14, padx=20)
+        header = tk.Frame(self.root, bg=self.colors["navy"], pady=14, padx=20)
         header.pack(fill="x")
         tk.Label(
             header, text="STUDENT RESUME GENERATOR",
-            font=("Segoe UI", 18, "bold"), fg="white", bg="#183153"
+            font=("Segoe UI", 18, "bold"), fg="white", bg=self.colors["navy"]
         ).pack(side="left")
         tk.Label(
             header, text="Interactive Desktop Studio",
-            font=("Segoe UI", 10, "italic"), fg="#93c5fd", bg="#183153"
+            font=("Segoe UI", 10, "italic"), fg="#bfdbfe", bg=self.colors["navy"]
         ).pack(side="right", pady=6)
 
         # Main Split Container
-        main_container = tk.Frame(self.root, bg="#eef3f8", padx=12, pady=12)
+        main_container = tk.Frame(self.root, bg=self.colors["background"], padx=12, pady=12)
         main_container.pack(fill="both", expand=True)
 
         # Left Column: Form & Controls (Scrollable)
-        left_frame = tk.Frame(main_container, bg="#eef3f8")
+        left_frame = tk.Frame(main_container, bg=self.colors["background"])
         left_frame.pack(side="left", fill="both", expand=True, padx=(0, 8))
 
-        canvas = tk.Canvas(left_frame, bg="#eef3f8", highlightthickness=0)
+        canvas = tk.Canvas(left_frame, bg=self.colors["background"], highlightthickness=0)
         scrollbar = ttk.Scrollbar(left_frame, orient="vertical", command=canvas.yview)
-        form = tk.Frame(canvas, bg="white", padx=16, pady=12, relief="solid", bd=1)
+        form = tk.Frame(canvas, bg="white", padx=16, pady=12, relief="solid", bd=1,
+                        highlightbackground="#dbe4f0", highlightthickness=1)
 
         form.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas_window = canvas.create_window((0, 0), window=form, anchor="nw")
@@ -72,20 +85,21 @@ class StudentResumeApp:
         scrollbar.pack(side="right", fill="y")
 
         # Right Column: In-App PDF Live Preview
-        right_frame = tk.Frame(main_container, bg="white", padx=12, pady=12, relief="solid", bd=1)
+        right_frame = tk.Frame(main_container, bg="white", padx=12, pady=12, relief="solid", bd=1,
+                               highlightbackground="#dbe4f0", highlightthickness=1)
         right_frame.pack(side="right", fill="both", expand=False, ipadx=10)
 
         tk.Label(
             right_frame, text="Live Resume Preview",
-            font=("Segoe UI", 12, "bold"), fg="#183153", bg="white"
+            font=("Segoe UI", 12, "bold"), fg=self.colors["navy"], bg="white"
         ).pack(anchor="w", pady=(0, 8))
 
         # Preview Canvas Container
-        preview_container = tk.Frame(right_frame, bg="#cbd5e1", width=420, height=620)
+        preview_container = tk.Frame(right_frame, bg="#dbeafe", width=420, height=620)
         preview_container.pack(fill="both", expand=True)
         preview_container.pack_propagate(False)
 
-        self.preview_canvas = tk.Canvas(preview_container, bg="#e2e8f0", highlightthickness=0)
+        self.preview_canvas = tk.Canvas(preview_container, bg="#eff6ff", highlightthickness=0)
         self.preview_canvas.pack(fill="both", expand=True)
 
         # Preview Action Buttons
@@ -93,13 +107,19 @@ class StudentResumeApp:
         preview_btns.pack(fill="x")
         tk.Button(
             preview_btns, text="🔄 Refresh Preview", command=self.update_preview,
-            font=("Segoe UI", 9, "bold"), bg="#475569", fg="white",
-            relief="flat", padx=10, pady=6, cursor="hand2"
+            font=("Segoe UI", 9, "bold"), bg=self.colors["blue"], fg="black",
+            activebackground=self.colors["blue_dark"], activeforeground="black",
+            relief="flat", borderwidth=0, highlightthickness=2,
+            highlightbackground=self.colors["blue"], highlightcolor=self.colors["blue_dark"],
+            padx=10, pady=7, cursor="hand2"
         ).pack(side="left", expand=True, fill="x", padx=2)
         tk.Button(
             preview_btns, text="📥 Download PDF", command=self.download_resume,
-            font=("Segoe UI", 9, "bold"), bg="#1d6f5f", fg="white",
-            relief="flat", padx=10, pady=6, cursor="hand2"
+            font=("Segoe UI", 9, "bold"), bg=self.colors["orange"], fg="black",
+            activebackground="#ea580c", activeforeground="black",
+            relief="flat", borderwidth=0, highlightthickness=2,
+            highlightbackground=self.colors["orange"], highlightcolor="#ea580c",
+            padx=10, pady=7, cursor="hand2"
         ).pack(side="right", expand=True, fill="x", padx=2)
 
         # Build Form Sections
@@ -134,15 +154,15 @@ class StudentResumeApp:
         for section_title, items in sections:
             tk.Label(
                 form, text=section_title, font=("Segoe UI", 11, "bold"),
-                fg="#183153", bg="white"
-            ).pack(anchor="w", pady=(10, 6))
+                fg="white", bg=self.colors["blue"], padx=10, pady=5
+            ).pack(fill="x", anchor="w", pady=(10, 6))
 
             for key, label, placeholder in items:
                 if key == "photo_section":
                     photo_row = tk.Frame(form, bg="white")
                     photo_row.pack(fill="x", pady=4)
                     
-                    self.photo_thumb_label = tk.Label(photo_row, bg="#e2e8f0", width=60, height=60, relief="solid", bd=1)
+                    self.photo_thumb_label = tk.Label(photo_row, bg="#e0e7ff", width=60, height=60, relief="solid", bd=1)
                     self.photo_thumb_label.pack(side="left", padx=(0, 10))
                     self._set_default_thumbnail()
 
@@ -151,11 +171,13 @@ class StudentResumeApp:
 
                     tk.Button(
                         btn_frame, text="📁 Upload Image", command=self.upload_photo,
-                        font=("Segoe UI", 9), bg="#e2e8f0", fg="#183153", relief="flat", padx=8, pady=4, cursor="hand2"
+                        font=("Segoe UI", 9), bg="#e0e7ff", fg=self.colors["navy"],
+                        activebackground="#c7d2fe", relief="flat", padx=8, pady=4, cursor="hand2"
                     ).pack(side="top", anchor="w", pady=2)
                     tk.Button(
                         btn_frame, text="📷 Capture Webcam", command=self.open_webcam_dialog,
-                        font=("Segoe UI", 9), bg="#e2e8f0", fg="#183153", relief="flat", padx=8, pady=4, cursor="hand2"
+                        font=("Segoe UI", 9), bg="#e0e7ff", fg=self.colors["navy"],
+                        activebackground="#c7d2fe", relief="flat", padx=8, pady=4, cursor="hand2"
                     ).pack(side="top", anchor="w", pady=2)
                     continue
 
@@ -163,19 +185,25 @@ class StudentResumeApp:
                 row.pack(fill="x", pady=4)
                 tk.Label(
                     row, text=label, width=20, anchor="w",
-                    font=("Segoe UI", 9, "bold"), bg="white", fg="#263648"
+                    font=("Segoe UI", 9, "bold"), bg="white", fg=self.colors["text"]
                 ).pack(side="left", anchor="nw", pady=4)
 
                 if key in ("projects", "experience", "objective"):
                     widget = tk.Text(
                         row, height=3 if key != "objective" else 4,
                         font=("Segoe UI", 10), wrap="word",  # Integer font size
-                        relief="solid", bd=1, padx=6, pady=4
+                        bg=self.colors["input"], fg=self.colors["text"],
+                        insertbackground=self.colors["blue"], relief="solid", bd=1,
+                        highlightthickness=1, highlightcolor="#93c5fd",
+                        highlightbackground=self.colors["border"], padx=6, pady=4
                     )
                     widget.pack(side="left", fill="x", expand=True)
                 else:
                     widget = tk.Entry(
-                        row, font=("Segoe UI", 10), relief="solid", bd=1  # Integer font size
+                        row, font=("Segoe UI", 10), bg=self.colors["input"],
+                        fg=self.colors["text"], insertbackground=self.colors["blue"],
+                        relief="solid", bd=1, highlightthickness=1,
+                        highlightcolor="#93c5fd", highlightbackground=self.colors["border"]
                     )
                     widget.pack(side="left", fill="x", expand=True, ipady=5)
                 
@@ -187,20 +215,21 @@ class StudentResumeApp:
         self._set_value("objective", "Motivated student seeking an opportunity to apply my skills and contribute to impactful projects.")
 
         # Bottom Action Bar
-        bottom_bar = tk.Frame(self.root, bg="#eef3f8", pady=8, padx=12)
+        bottom_bar = tk.Frame(self.root, bg=self.colors["background"], pady=8, padx=12)
         bottom_bar.pack(fill="x")
         tk.Button(
             bottom_bar, text="Clear Form", command=self.clear_form,
-            font=("Segoe UI", 9, "bold"), bg="#cbd5e1", fg="#183153",
+            font=("Segoe UI", 9, "bold"), bg="#dbeafe", fg=self.colors["navy"],
+            activebackground="#bfdbfe",
             relief="flat", padx=14, pady=8, cursor="hand2"
         ).pack(side="left", padx=10)
         tk.Label(
-            bottom_bar, text="* Required fields | Preview updates live as you type", bg="#eef3f8",
-            fg="#64748b", font=("Segoe UI", 9)
+            bottom_bar, text="* Required fields | Preview updates live as you type",
+            bg=self.colors["background"], fg=self.colors["muted"], font=("Segoe UI", 9)
         ).pack(side="right", padx=10)
 
     def _set_default_thumbnail(self):
-        img = Image.new("RGB", (60, 60), color="#cbd5e1")
+        img = Image.new("RGB", (60, 60), color="#e0e7ff")
         self.thumb_img_tk = ImageTk.PhotoImage(img)
         self.photo_thumb_label.config(image=self.thumb_img_tk)
 
