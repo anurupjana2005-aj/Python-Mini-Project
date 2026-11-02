@@ -4,8 +4,6 @@ import os
 import re
 import shutil
 import tempfile
-import webbrowser
-from pathlib import Path
 from PIL import Image, ImageTk
 import cv2
 import pymupdf as fitz  # Updated PyMuPDF import
@@ -113,12 +111,6 @@ class StudentResumeApp:
             relief="flat", borderwidth=0, highlightthickness=2,
             highlightbackground=self.colors["blue"], highlightcolor=self.colors["blue_dark"],
             padx=10, pady=7, cursor="hand2"
-        ).pack(side="left", expand=True, fill="x", padx=2)
-        tk.Button(
-            preview_btns, text="👁 Open PDF", command=self.open_pdf,
-            font=("Segoe UI", 9, "bold"), bg="#dbeafe", fg=self.colors["navy"],
-            activebackground="#bfdbfe", activeforeground=self.colors["navy"],
-            relief="flat", borderwidth=0, padx=10, pady=7, cursor="hand2"
         ).pack(side="left", expand=True, fill="x", padx=2)
         tk.Button(
             preview_btns, text="📥 Download PDF", command=self.download_resume,
@@ -434,17 +426,6 @@ class StudentResumeApp:
         if show_message:
             messagebox.showwarning("Invalid Resume Details", message)
         return False
-
-    def open_pdf(self):
-        data = {key: self._get_value(key) for key in self.fields}
-        if not self._validate_data(data):
-            return
-        if not self.current_temp_pdf or not os.path.isfile(self.current_temp_pdf):
-            self.update_preview()
-        if self.current_temp_pdf and os.path.isfile(self.current_temp_pdf):
-            webbrowser.open(Path(self.current_temp_pdf).as_uri())
-        else:
-            messagebox.showerror("PDF Error", "The resume PDF could not be generated.")
 
     def download_resume(self):
         data = {key: self._get_value(key) for key in self.fields}

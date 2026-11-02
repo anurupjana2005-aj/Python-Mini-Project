@@ -7,7 +7,7 @@ A desktop mini project that collects student details through a Tkinter GUI and g
 - Tkinter form for personal details, education, skills, projects, experience, and certifications
 - Required-field validation
 - Basic email and 10-digit phone validation
-- Preview the generated PDF in the default PDF viewer before downloading it
+- Preview the generated PDF in the app before downloading it
 - Save-as dialog to choose where the PDF resume is downloaded
 - Clear Form button
 - Colorful blue-and-orange themed interface with highlighted form controls
@@ -28,12 +28,11 @@ A desktop mini project that collects student details through a Tkinter GUI and g
    ```
 4. Run the program:
    ```bash
-   python3 main.py
+   python3 Python_Mini_Project/main.py
    ```
 5. Fill in all required fields. The email must be valid and the phone number must contain exactly 10 digits.
 6. Click **Generate / Refresh** to generate the in-app preview.
-7. Click **Open PDF** to review the generated resume in your default PDF viewer.
-8. Click **Download PDF**, then choose a location and filename.
+7. Click **Download PDF**, then choose a location and filename.
 
 ## Required fields
 Full Name, Email, Phone Number, Course/Degree, College/University, Technical Skills, and Career Objective.
