@@ -30,9 +30,10 @@ A desktop mini project that collects student details through a Tkinter GUI and g
    ```bash
    python3 main.py
    ```
-5. Fill in the required fields and click **Generate Resume PDF**.
-6. Review the resume in your default PDF viewer.
-7. Return to the app and click **Download PDF**, then choose a location and filename.
+5. Fill in all required fields. The email must be valid and the phone number must contain exactly 10 digits.
+6. Click **Generate / Refresh** to generate the in-app preview.
+7. Click **Open PDF** to review the generated resume in your default PDF viewer.
+8. Click **Download PDF**, then choose a location and filename.
 
 ## Required fields
 Full Name, Email, Phone Number, Course/Degree, College/University, Technical Skills, and Career Objective.

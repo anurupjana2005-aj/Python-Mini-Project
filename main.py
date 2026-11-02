@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
+import re
 import shutil
 import tempfile
 import webbrowser
@@ -10,7 +11,7 @@ import cv2
 import pymupdf as fitz  # Updated PyMuPDF import
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_LEFT, TA_CENTER
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -76,7 +77,7 @@ class StudentResumeApp:
         form = tk.Frame(canvas, bg="white", padx=16, pady=12, relief="solid", bd=1,
                         highlightbackground="#dbe4f0", highlightthickness=1)
 
-        form.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        form.bind("<Configure>", lambda _e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas_window = canvas.create_window((0, 0), window=form, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
         canvas.bind("<Configure>", lambda e: canvas.itemconfigure(canvas_window, width=e.width))
@@ -106,12 +107,18 @@ class StudentResumeApp:
         preview_btns = tk.Frame(right_frame, bg="white", pady=10)
         preview_btns.pack(fill="x")
         tk.Button(
-            preview_btns, text="🔄 Refresh Preview", command=self.update_preview,
+            preview_btns, text="🔄 Generate / Refresh", command=self.update_preview,
             font=("Segoe UI", 9, "bold"), bg=self.colors["blue"], fg="black",
             activebackground=self.colors["blue_dark"], activeforeground="black",
             relief="flat", borderwidth=0, highlightthickness=2,
             highlightbackground=self.colors["blue"], highlightcolor=self.colors["blue_dark"],
             padx=10, pady=7, cursor="hand2"
+        ).pack(side="left", expand=True, fill="x", padx=2)
+        tk.Button(
+            preview_btns, text="👁 Open PDF", command=self.open_pdf,
+            font=("Segoe UI", 9, "bold"), bg="#dbeafe", fg=self.colors["navy"],
+            activebackground="#bfdbfe", activeforeground=self.colors["navy"],
+            relief="flat", borderwidth=0, padx=10, pady=7, cursor="hand2"
         ).pack(side="left", expand=True, fill="x", padx=2)
         tk.Button(
             preview_btns, text="📥 Download PDF", command=self.download_resume,
@@ -157,7 +164,7 @@ class StudentResumeApp:
                 fg="white", bg=self.colors["blue"], padx=10, pady=5
             ).pack(fill="x", anchor="w", pady=(10, 6))
 
-            for key, label, placeholder in items:
+            for key, label, _placeholder in items:
                 if key == "photo_section":
                     photo_row = tk.Frame(form, bg="white")
                     photo_row.pack(fill="x", pady=4)
@@ -207,7 +214,7 @@ class StudentResumeApp:
                     )
                     widget.pack(side="left", fill="x", expand=True, ipady=5)
                 
-                widget.bind("<KeyRelease>", lambda e: self.update_preview())
+                widget.bind("<KeyRelease>", lambda _e: self.update_preview())
                 self.fields[key] = widget
 
         # Starter Values
@@ -308,7 +315,12 @@ class StudentResumeApp:
                 img_pil = Image.fromarray(img_resized)
                 img_tk = ImageTk.PhotoImage(image=img_pil)
                 cam_canvas.img_tk = img_tk
-                cam_canvas.create_image(200, 150, image=img_tk)
+                if hasattr(cam_canvas, "image_item"):
+                    cam_canvas.itemconfigure(cam_canvas.image_item, image=img_tk)
+                else:
+                    cam_canvas.image_item = cam_canvas.create_image(
+                        200, 150, image=img_tk
+                    )
             
             if dialog.winfo_exists():
                 dialog.after(30, update_frame)
@@ -360,8 +372,15 @@ class StudentResumeApp:
         
         try:
             self._create_pdf(data, temp_path)
+            old_temp_pdf = self.current_temp_pdf
             self.current_temp_pdf = temp_path
             self.preview_files.add(temp_path)
+            if old_temp_pdf and old_temp_pdf != temp_path:
+                self.preview_files.discard(old_temp_pdf)
+                try:
+                    os.remove(old_temp_pdf)
+                except OSError:
+                    pass
             
             doc = fitz.open(temp_path)
             page = doc.load_page(0)
@@ -384,13 +403,57 @@ class StudentResumeApp:
             self.preview_canvas.create_image(
                 canvas_w // 2, canvas_h // 2, image=self.preview_tk_img, anchor="center"
             )
-        except Exception as e:
-            print(f"Preview render notice: {e}")
+        except (OSError, RuntimeError, ValueError) as exc:
+            self.preview_files.discard(temp_path)
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+            messagebox.showerror("Preview Error", f"Could not generate the resume preview.\n\nDetails: {exc}")
+
+    def _validate_data(self, data, show_message=True):
+        required_fields = {
+            "full_name": "Full Name",
+            "email": "Email",
+            "phone": "Phone Number",
+            "course": "Course / Degree",
+            "college": "College / University",
+            "skills": "Technical Skills",
+            "objective": "Career Objective",
+        }
+        missing = [label for key, label in required_fields.items() if not data[key]]
+        if missing:
+            message = "Please complete the required fields:\n\n- " + "\n- ".join(missing)
+        elif not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", data["email"]):
+            message = "Please enter a valid email address."
+        elif not re.fullmatch(r"\d{10}", data["phone"]):
+            message = "Phone Number must contain exactly 10 digits."
+        else:
+            return True
+
+        if show_message:
+            messagebox.showwarning("Invalid Resume Details", message)
+        return False
+
+    def open_pdf(self):
+        data = {key: self._get_value(key) for key in self.fields}
+        if not self._validate_data(data):
+            return
+        if not self.current_temp_pdf or not os.path.isfile(self.current_temp_pdf):
+            self.update_preview()
+        if self.current_temp_pdf and os.path.isfile(self.current_temp_pdf):
+            webbrowser.open(Path(self.current_temp_pdf).as_uri())
+        else:
+            messagebox.showerror("PDF Error", "The resume PDF could not be generated.")
 
     def download_resume(self):
         data = {key: self._get_value(key) for key in self.fields}
-        if not data["full_name"]:
-            messagebox.showwarning("Missing Name", "Please enter at least your Full Name to download.")
+        if not self._validate_data(data):
+            return
+        if not self.current_temp_pdf or not os.path.isfile(self.current_temp_pdf):
+            self.update_preview()
+        if not self.current_temp_pdf or not os.path.isfile(self.current_temp_pdf):
+            messagebox.showerror("PDF Error", "The resume PDF could not be generated.")
             return
 
         safe_name = "".join(ch for ch in data["full_name"] if ch.isalnum() or ch in (" ", "_", "-")).strip()
@@ -407,7 +470,7 @@ class StudentResumeApp:
         try:
             shutil.copyfile(self.current_temp_pdf, filepath)
             messagebox.showinfo("Success", f"Resume downloaded successfully!\n\nSaved to:\n{filepath}")
-        except OSError as exc:
+        except (OSError, TypeError) as exc:
             messagebox.showerror("Error", f"Could not download resume.\n\nDetails: {exc}")
 
     def close_app(self):
