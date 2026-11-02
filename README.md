@@ -20,14 +20,15 @@ A desktop mini project that collects student details through a Tkinter GUI and g
 
 ## How to run
 1. Extract the ZIP file.
-2. Open Command Prompt or terminal in the project folder.
+2. Open Command Prompt or terminal in the folder containing `Python_Mini_Project`.
 3. Install the dependency:
    ```bash
-   pip install -r requirements.txt
+   cd Python_Mini_Project
+   python -m pip install -r requirements.txt
    ```
 4. Run the program:
    ```bash
-   python main.py
+   python3 main.py
    ```
 5. Fill in the required fields and click **Generate Resume PDF**.
 6. Review the resume in your default PDF viewer.
